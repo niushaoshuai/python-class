@@ -192,27 +192,70 @@ import inspect
 
 # ------------------------继承-资源的访问顺序-2.3-2.7 C3算法识别问题继承 ，如下代码会报错：order (MRO) for bases C, B-------------------------------------
 
+# class D(object):
+#     pass
+# # L(D) = [D,object] 
+
+# class B(D):
+#     pass
+# # L(B) = [B,D,object]
+
+# class C(B):
+#     pass
+# # L(C) = [C] + merge(L(B),[B])
+# # L(C) = [C] + merge([B,D,object],[B])
+# # L(C) = [C,B] + merge([D,object],[])
+# # L(C) = [C,B,D] + merge([object],[])
+# # L(C) = [C,B,D,object] + merge([],[])
+# # L(C) = [C,B,D,object]
+
+
+# class A(B,C):
+#     pass
+# # L(A) = [A] + merge(L(B),L(C),[B,C])
+# # L(A) = [A] + merge([B,D,object],[C,B,D,object],[B,C])
+
+# print(inspect.getmro(A))
+
+# ------------------------------继承-资源的累加-super使用注意事项-------------------------------------
+
+# class D(object):
+#     def __init__(self):
+#         print("d")
+
+# class B(D):
+#     def __init__(self):
+#         # print(self.__class__) 指的是A类，实际应该是B类。所以self这里并不稳定
+#         super(self.__class__,self).__init__()
+
+# class A(B):
+#     def __init__(self):
+#         super(A,self).__init__()
+
+# A()
+# print(inspect.getmro(A))
+
 class D(object):
-    pass
-# L(D) = [D,object] 
+    def __init__(self):
+        print("d")
+
+class C(D):
+    def __init__(self):
+        super(C,self).__init__()
+        print("c")
 
 class B(D):
-    pass
-# L(B) = [B,D,object]
-
-class C(B):
-    pass
-# L(C) = [C] + merge(L(B),[B])
-# L(C) = [C] + merge([B,D,object],[B])
-# L(C) = [C,B] + merge([D,object],[])
-# L(C) = [C,B,D] + merge([object],[])
-# L(C) = [C,B,D,object] + merge([],[])
-# L(C) = [C,B,D,object]
-
+    def __init__(self):
+        super(B,self).__init__()
+        print("b")
 
 class A(B,C):
-    pass
-# L(A) = [A] + merge(L(B),L(C),[B,C])
-# L(A) = [A] + merge([B,D,object],[C,B,D,object],[B,C])
+    def __init__(self):
+        # 不要super和类.方法复用，会引起重复调用的问题
+        super(A,self).__init__()
+        # B.__init__(self)
+        # C.__init__(self)
+        print("a")
 
+A()
 print(inspect.getmro(A))
